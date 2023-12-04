@@ -1,11 +1,13 @@
 import logo from './logo.svg';
 import './App.css';
-import { Editor, EditorState, KeyBindingUtil } from 'draft-js'
+import { Editor, EditorState, KeyBindingUtil, convertFromRaw, convertToRaw } from 'draft-js'
 import 'draft-js/dist/Draft.css'
 import { useState } from 'react';
 import { RichUtils } from 'draft-js';
 
 function App() {
+  const [backup, setBackup] = useState({})
+
   const styleMap = {
     'HIGHLIGHT': {
       'backgroundColor': '#faed27',
@@ -40,11 +42,30 @@ function App() {
     }
   }
 
+  const onSave = () => {
+    setBackup(convertToRaw(editorState.getCurrentContent()))
+  }
+
+  const onBackup = () => {
+    setEditorState(EditorState.createWithContent(convertFromRaw(backup)))
+  }
+
+  const onReset = () => {
+    setEditorState(EditorState.createEmpty())
+  }
+
+  // console.log(editorState.getCurrentContent())
+
+  console.log(convertToRaw(editorState.getCurrentContent()))
+
   return (
     <div className="App">
        <button onClick={onBoldClick}>Bold</button>
        <button onClick={onItalicClick}>Italic</button>
        <button onClick={onHighlightClick}>HIGHLIGHT</button>
+       <button onClick={onSave}>Save</button>
+       <button onClick={onReset}>Reset</button>
+       <button onClick={onBackup}>Backup</button>
       <Editor
         placeholder={"Start typing!"}
         customStyleMap={styleMap} 
@@ -53,6 +74,13 @@ function App() {
         handleKeyCommand={handleKeyCommand}
         keyBindingFn={keyBindingFunction} 
       />
+      <br />
+      Raw Value
+      <div>
+        {
+          JSON.stringify(backup)
+        }
+      </div>
     </div>
   );
 }
