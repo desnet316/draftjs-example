@@ -71,8 +71,8 @@ function App() {
         customStyleMap={styleMap} 
         editorState={editorState} 
         onChange={setEditorState}
-        handleKeyCommand={handleKeyCommand}
-        keyBindingFn={keyBindingFunction} 
+        // handleKeyCommand={handleKeyCommand}
+        // keyBindingFn={keyBindingFunction} 
       />
       <br />
       Raw Value
