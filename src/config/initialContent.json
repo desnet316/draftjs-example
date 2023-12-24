@@ -1,0 +1,30 @@
+{
+  "blocks": [
+    {
+      "key": "dgu4q",
+      "text": "blah",
+      "type": "unstyled",
+      "depth": 0,
+      "inlineStyleRanges": [],
+      "entityRanges": [],
+      "data": {}
+    },
+    {
+      "key": "1sr6",
+      "text": "test",
+      "type": "unstyled",
+      "depth": 0,
+      "inlineStyleRanges": [
+        {
+          "offset": 0,
+          "length": 4,
+          "style": "HIGHLIGHT",
+          "id": "2c5162a8-0e83-4ce7-94ee-2d85de8e9765"
+        }
+      ],
+      "entityRanges": [],
+      "data": {}
+    }
+  ],
+  "entityMap": {}
+}
