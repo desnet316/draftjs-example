@@ -129,6 +129,7 @@ function App() {
         customStyleMap={styleMap}
         editorState={editorState}
         onEditorStateChange={setEditorState}
+
         // handleKeyCommand={handleKeyCommand}
         // keyBindingFn={keyBindingFunction}
       />
