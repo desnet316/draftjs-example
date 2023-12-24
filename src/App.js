@@ -1,12 +1,7 @@
-import {
-  Editor,
-  EditorState,
-  // KeyBindingUtil,
-  RichUtils,
-  convertFromRaw,
-  convertToRaw,
-} from "draft-js";
+import { EditorState, RichUtils, convertFromRaw, convertToRaw } from "draft-js";
 import "draft-js/dist/Draft.css";
+import { Editor } from "react-draft-wysiwyg";
+import "react-draft-wysiwyg/dist/react-draft-wysiwyg.css";
 import { v4 as uuidv4 } from "uuid";
 import { useState } from "react";
 import "./App.css";
@@ -72,36 +67,9 @@ function App() {
     return EditorState.createWithContent(contentState);
   });
 
-  const onBoldClick = () => {
-    setEditorState(RichUtils.toggleInlineStyle(editorState, "BOLD"));
-  };
-
-  const onItalicClick = () => {
-    setEditorState(RichUtils.toggleInlineStyle(editorState, "ITALIC"));
-  };
-
   const onHighlightClick = () => {
     setEditorState(RichUtils.toggleInlineStyle(editorState, "HIGHLIGHT"));
   };
-
-  // const handleKeyCommand = (command) => {
-  //   if (!editorState && command === "highlight") {
-  //     editorState = RichUtils.toggleInlineStyle(
-  //       this.state.editorState,
-  //       "HIGHLIGHT"
-  //     );
-  //   }
-  // };
-
-  // const keyBindingFunction = (event) => {
-  //   if (
-  //     KeyBindingUtil.hasCommandModifier(event) &&
-  //     event.shiftKey &&
-  //     event.key === "h"
-  //   ) {
-  //     return "highlight";
-  //   }
-  // };
 
   const onSave = () => {
     const currentData = convertToRaw(editorState.getCurrentContent());
@@ -124,20 +92,43 @@ function App() {
   const onReset = () => {
     setEditorState(EditorState.createEmpty());
   };
+  const buttonStyle = {
+    padding: "8px 16px",
+    marginLeft: "5px",
+    marginRight: "5px",
+    marginBottom: "10px",
+    fontSize: "16px",
+    backgroundColor: "#007bff",
+    color: "#ffffff",
+    border: "none",
+    borderRadius: "4px",
+    cursor: "pointer",
+    boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
+    transition: "background-color 0.3s ease-in-out",
+  };
 
   return (
-    <div className="App">
-      <button onClick={onBoldClick}>Bold</button>
-      <button onClick={onItalicClick}>Italic</button>
-      <button onClick={onHighlightClick}>HIGHLIGHT</button>
-      <button onClick={onSave}>Save</button>
-      <button onClick={onReset}>Reset</button>
-      <button onClick={onBackup}>Backup</button>
+    <div
+      className="App"
+      style={{ marginTop: "10px", marginBottom: "10px", padding: "20px" }}
+    >
+      <button style={buttonStyle} onClick={onHighlightClick}>
+        HIGHLIGHT
+      </button>
+      <button style={buttonStyle} onClick={onSave}>
+        Save
+      </button>
+      <button style={buttonStyle} onClick={onReset}>
+        Reset
+      </button>
+      <button style={buttonStyle} onClick={onBackup}>
+        Backup
+      </button>
       <Editor
         placeholder={"Start typing!"}
         customStyleMap={styleMap}
         editorState={editorState}
-        onChange={setEditorState}
+        onEditorStateChange={setEditorState}
         // handleKeyCommand={handleKeyCommand}
         // keyBindingFn={keyBindingFunction}
       />
