@@ -53,7 +53,8 @@ function App() {
 
   const modifiedContent = modifyContentWithIdPreservation(
     initialContent,
-    uuidv4
+    uuidv4,
+    highlightIDs
   );
 
   const styleMap = {
@@ -68,12 +69,39 @@ function App() {
   });
 
   const onHighlightClick = () => {
-    setEditorState(RichUtils.toggleInlineStyle(editorState, "HIGHLIGHT"));
+    const currentContent = editorState.getCurrentContent();
+    const selection = editorState.getSelection();
+
+    const startKey = selection.getStartKey();
+    const startOffset = selection.getStartOffset();
+    const endOffset = selection.getEndOffset();
+    const block = currentContent.getBlockForKey(startKey);
+
+    let modifiedEditorState = editorState;
+
+    if (startOffset !== endOffset) {
+      // Text is selected
+      modifiedEditorState = RichUtils.toggleInlineStyle(
+        editorState,
+        "HIGHLIGHT"
+      );
+    } else if (block.getType() === "unstyled") {
+      // No text is selected
+      const updatedEditorState = EditorState.set(editorState, {
+        currentContent: currentContent,
+      });
+
+      modifiedEditorState = RichUtils.toggleInlineStyle(
+        updatedEditorState,
+        "HIGHLIGHT"
+      );
+    }
+
+    setEditorState(modifiedEditorState);
   };
 
   const onSave = () => {
     const currentData = convertToRaw(editorState.getCurrentContent());
-    //const withId = modifyContentWithIdPreservation(currentData);
     const extracted = extractNewIDsAndIndexes(
       initialContent,
       currentData,
@@ -81,7 +109,7 @@ function App() {
       uuidv4
     );
     setHighlightIDs(extracted);
-    const mods = mapIDsToContent(currentData, extracted);
+    const mods = mapIDsToContent(currentData, extracted, uuidv4);
     setBackup(mods);
   };
 
