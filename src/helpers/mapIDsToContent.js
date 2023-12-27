@@ -1,41 +1,50 @@
 export default function mapIDsToContent(initialContent, highlightIDs, uuidv4) {
   const mappedContent = { ...initialContent };
-  const highlightedBlocks = mappedContent.blocks.filter((block) =>
-    block.inlineStyleRanges.some((s) => s.style === "HIGHLIGHT")
-  );
 
-  if (highlightedBlocks.length === mappedContent.blocks.length) {
-    const existingId = highlightIDs.find((id) => id.id);
-    const idToAssign = existingId ? existingId.id : uuidv4();
+  mappedContent.blocks.forEach((block) => {
+    const isAllHighlighted = block.text.split(/\s+/).every((word) => {
+      const styleRange = block.inlineStyleRanges.find(
+        (s) =>
+          s.offset === 0 && s.length === word.length && s.style === "HIGHLIGHT"
+      );
+      return !!styleRange;
+    });
 
-    mappedContent.blocks.forEach((block) => {
+    if (isAllHighlighted) {
+      const existingId = highlightIDs.find((id) => id.id);
+      const idToAssign = existingId ? existingId.id : uuidv4();
+      console.log(existingId);
       block.inlineStyleRanges.forEach((styleRange) => {
         if (styleRange.style === "HIGHLIGHT") {
           styleRange.id = idToAssign;
         }
       });
-    });
-  } else {
-    highlightIDs.forEach((id) => {
-      const block = mappedContent.blocks.find((b) => b.key === id.blockKey);
-      if (block) {
-        const styleRangeIndex = block.inlineStyleRanges.findIndex(
-          (s) => s.offset === id.styleOffset && s.style === "HIGHLIGHT"
-        );
-        if (styleRangeIndex !== -1) {
-          const styleRange = block.inlineStyleRanges[styleRangeIndex];
-          styleRange.id = id.id;
-        } else {
-          const styleRange = block.inlineStyleRanges.find(
-            (s) => s.offset === id.styleOffset
+    } else {
+      block.inlineStyleRanges.forEach((styleRange) => {
+        if (styleRange.style === "HIGHLIGHT") {
+          const id = highlightIDs.find(
+            (id) =>
+              id.blockKey === block.key && id.styleOffset === styleRange.offset
           );
-          if (styleRange && styleRange.id) {
-            styleRange.id = null;
+          if (!id || !id.id) {
+            styleRange.id = uuidv4();
+            highlightIDs.push({
+              id: styleRange.id,
+              blockKey: block.key,
+              styleOffset: styleRange.offset,
+            });
+          } else {
+            styleRange.id = uuidv4();
+            highlightIDs.push({
+              id: styleRange.id,
+              blockKey: block.key,
+              styleOffset: styleRange.offset,
+            });
           }
         }
-      }
-    });
-  }
+      });
+    }
+  });
 
   return mappedContent;
 }
