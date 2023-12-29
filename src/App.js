@@ -234,8 +234,8 @@ function App() {
 
     const currentHightlightSections = processedSections(currentSections);
 
-    console.log(previousHighlightSections);
-    console.log(currentHightlightSections);
+    // console.log(previousHighlightSections);
+    // console.log(currentHightlightSections);
 
     for (let j = 0; j < previousHighlightSections.length; ++ j) {
       for (let i = 0; i < currentHightlightSections.length; ++ i) {
