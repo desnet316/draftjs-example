@@ -163,6 +163,7 @@ function App() {
         while (
           sections[j].offset + sections[j].length === sections[j].text.length &&
           j < sections.length - 1 &&
+          sections[j + 1].i === sections[j].i + 1 &&
           sections[j + 1].offset === 0
         ) {
           higlightedContext.push(sections[j + 1])
@@ -205,6 +206,8 @@ function App() {
             ...previousData.blocks[i].inlineStyleRanges[j],
             key: previousData.blocks[i].key,
             text: previousData.blocks[i].text,
+            i,
+            j
           })
         }
         
@@ -231,8 +234,8 @@ function App() {
 
     const currentHightlightSections = processedSections(currentSections);
 
-    // console.log(previousHighlightSections);
-    // console.log(currentHightlightSections);
+    console.log(previousHighlightSections);
+    console.log(currentHightlightSections);
 
     for (let j = 0; j < previousHighlightSections.length; ++ j) {
       for (let i = 0; i < currentHightlightSections.length; ++ i) {
@@ -313,7 +316,7 @@ function App() {
       />
       <br />
       Raw Value
-      <div>{JSON.stringify(backup)}</div>
+      <div>{JSON.stringify(backup, null, 2)}</div>
     </div>
   );
 }
