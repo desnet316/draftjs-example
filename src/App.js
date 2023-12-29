@@ -10,9 +10,49 @@ import extractNewIDsAndIndexes from "./helpers/extractNewIDs";
 import mapIDsToContent from "./helpers/mapIDsToContent";
 import modifyContentWithIdPreservation from "./helpers/modifyContent";
 import extractIDsFromContent from "./helpers/extractIDsFromContent";
+import { useRef } from "react";
+import { useEffect } from "react";
 
 function App() {
   const [backup, setBackup] = useState({});
+  const currentContentRef = useRef({
+    blocks: [
+      {
+        key: "dgu4q",
+        text: "first",
+        type: "unstyled",
+        depth: 0,
+        inlineStyleRanges: [
+          // {
+          //   offset: 1,
+          //   length: 4,
+          //   style: 'HIGHLIGHT',
+          //   id: "2c5162a8-0e83-4ce7-94ee-2d85de8e9765",
+          // }
+        ],
+        entityRanges: [],
+        data: {},
+      },
+      {
+        key: "1sr6",
+        text: "highlighted",
+        type: "unstyled",
+        depth: 0,
+        inlineStyleRanges: [
+          {
+            offset: 0,
+            length: 11,
+            style: "HIGHLIGHT",
+            id: "2c5162a8-0e83-4ce7-94ee-2d85de8e9765",
+          },
+        ],
+        entityRanges: [],
+        data: {},
+      },
+    ],
+    entityMap: {},
+  });
+
   const initialContent = useMemo(
     () => ({
       blocks: [
@@ -22,7 +62,14 @@ function App() {
           type: "unstyled",
           depth: 0,
           inlineStyleRanges: [],
-          entityRanges: [],
+          inlineStyleRanges: [
+            // {
+            //   offset: 1,
+            //   length: 4,
+            //   style: 'HIGHLIGHT',
+            //   id: "2c5162a8-0e83-4ce7-94ee-2d85de8e9765",
+            // }
+          ],
           data: {},
         },
         {
@@ -100,6 +147,111 @@ function App() {
     setEditorState(modifiedEditorState);
   };
 
+  useEffect(() => {
+    const currentData = convertToRaw(editorState.getCurrentContent());
+    const previousData = currentContentRef.current;
+
+    const trackSections = [];
+
+    function processedSections(sections) {
+      const resultSections = [];
+
+      for (let i = 0; i < sections.length; ) {
+        const higlightedContext = [ sections[i] ];
+  
+        let j = i;
+        while (
+          sections[j].offset + sections[j].length === sections[j].text.length &&
+          j < sections.length - 1 &&
+          sections[j + 1].offset === 0
+        ) {
+          higlightedContext.push(sections[j + 1])
+          j++; 
+        }
+  
+        resultSections.push(higlightedContext);
+        i = j + 1;
+      }
+
+      return resultSections;
+    }
+
+    function testIfModified(prevSections, currentSections) {
+      const prevKeyMap = {};
+
+      for (let i = 0; i < prevSections.length; ++ i) {
+        prevKeyMap[prevSections[i].key] = i;
+      }
+
+      for (let i = 0; i < currentSections.length; ++ i) {
+        const prevIndex = prevKeyMap[currentSections[i].key];
+        if (
+          prevIndex !== undefined && (
+            prevSections[prevIndex].offset >= currentSections[i].offset && prevSections[prevIndex].offset < currentSections[i].offset + currentSections[i].length ||
+            currentSections[i].offset >= prevSections[prevIndex].offset && currentSections[i].offset < prevSections[prevIndex].offset + prevSections[prevIndex].length
+          )
+        )  {
+          return true;
+        }
+      }
+
+      return false;
+    }
+
+    for (let i = 0; i < previousData.blocks.length; ++ i) {
+      for (let j = 0; j < previousData.blocks[i].inlineStyleRanges.length; ++ j) {
+        if (previousData.blocks[i].inlineStyleRanges[j].style === 'HIGHLIGHT' && previousData.blocks[i].inlineStyleRanges[j].id) {
+          trackSections.push({
+            ...previousData.blocks[i].inlineStyleRanges[j],
+            key: previousData.blocks[i].key,
+            text: previousData.blocks[i].text,
+          })
+        }
+        
+      }
+    }
+
+    const previousHighlightSections = processedSections(trackSections);
+
+    const currentSections = [];
+
+    for (let i = 0; i < currentData.blocks.length; ++ i) {
+      for (let j = 0; j < currentData.blocks[i].inlineStyleRanges.length; ++ j) {
+        if (currentData.blocks[i].inlineStyleRanges[j].style === 'HIGHLIGHT') {
+          currentSections.push({
+            ...currentData.blocks[i].inlineStyleRanges[j],
+            key: currentData.blocks[i].key,
+            text: currentData.blocks[i].text,
+            i,
+            j,
+          })
+        }
+      }
+    }
+
+    const currentHightlightSections = processedSections(currentSections);
+
+    // console.log(previousHighlightSections);
+    // console.log(currentHightlightSections);
+
+    for (let j = 0; j < previousHighlightSections.length; ++ j) {
+      for (let i = 0; i < currentHightlightSections.length; ++ i) {
+        if (testIfModified(previousHighlightSections[j], currentHightlightSections[i])) {
+          for (let k = 0; k < currentHightlightSections[i].length; ++ k) {
+            currentData.blocks[currentHightlightSections[i][k].i].inlineStyleRanges[currentHightlightSections[i][k].j].id = previousHighlightSections[j][0].id;
+          }
+          break;
+        }
+      }
+    }
+
+    // const contentState = convertFromRaw(currentData);
+    // const newState = EditorState.createWithContent(contentState);
+
+    currentContentRef.current = currentData;
+    // console.log(currentData);
+  }, [editorState])
+
   const onSave = () => {
     const currentData = convertToRaw(editorState.getCurrentContent());
     const extracted = extractNewIDsAndIndexes(
@@ -110,7 +262,8 @@ function App() {
     );
     setHighlightIDs(extracted);
     const mods = mapIDsToContent(currentData, extracted, uuidv4);
-    setBackup(mods);
+    // setBackup(mods);
+    setBackup(currentContentRef.current)
   };
 
   const onBackup = () => {
